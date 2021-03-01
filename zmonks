@@ -45,7 +45,7 @@ public class ZMonks extends AbstractScript {
 	Area MONKS = new Area(2929, 3512, 2941, 3518);
 
 	public enum State {
-		IDLE("Idle"), FIGHTING("Fighting"), BANKING("Banking"), WINE("Wine");
+		FIGHTING("Fighting"), BANKING("Banking"), WINE("Wine");
 
 		private State state;
 
@@ -80,7 +80,7 @@ public int onLoop() {
 						sleepUntil(() -> getDepositBox().isOpen(),
 								randomNum(8000, 10000));
 						sleep(randomNum(300, 500));			
-							getDepositBox().depositAllExcept("Trout");
+							getDepositBox().depositAllItems();
 							sleep(randomNum(300, 500));	
 						getDepositBox().close();
 					Walking.walkOnScreen(MONKS.getRandomTile());
@@ -96,6 +96,9 @@ public int onLoop() {
 		    			if (!zmonk.isInteractedWith() && !Players.localPlayer().isInCombat()) {
 		    				zmonk.interact("Attack");
 		    				Mouse.moveMouseOutsideScreen();
+		    				if (Combat.getHealthPercent()<= (Calculations.randomNum(50,75))); {
+		    				 	 getInventory().interact("Trout", "Eat");
+		    				}
 		    			}
 		    		}
 		    } else {
@@ -107,20 +110,33 @@ public int onLoop() {
 		    
 		    case WINE:
 		    	log("Looting Wine");
+		    	GroundItems wine = GroundItems().getClosest("Wine of zamorak");
+		    	if (!Players.localPlayer().isAnimating()) 
+		    		if (wine != null);
+		    		wine.interact("Take");
+		    		sleepUntil(() -> (!Players.localPlayer().isAnimating()), randomNum(1000, 2000));
+		    		
+		    	    break;
 		  }
 }	public State getState() {
-	NPCs zmonk = NPCs.closest(q -> q != null && q.getName().equals("Monk of Zamorak") && !q.isInCombat());
-	GroundItems wine = GroundItems().getClosest("Wine of Zamorak");
-		if (MONKS.getArea().contains(Players.localPlayer()) && (zmonk = null)
-				if(wine != null){{    							// if all monks are dead and wine is present, loot it
+	NPCs zmonk = NPCs.closest(q -> q != null && q.getName().equals("Monk of Zamorak") && !q.isInCombat()&& q.hasAction("Attack"));
+	GroundItems wine = GroundItems().getClosest("Wine of zamorak");
+		if (MONKS.getArea().contains(Players.localPlayer()) && (zmonk = null))
+				if(wine != null){{    							
 			return State.WINE;
-
+				
 		} else {
+			
 
-		}
-		return State.FIGHTING;       		// if in MONKS area, monks present, inventory not full -> interact.zmonk("Attack")
-	}
+		if (Players.localPlayer() != null && MONKS.getArea().contains(Players.localPlayer()))
+			if (zmonk != null)
+		return State.FIGHTING;     
 		
-		return State.BANKING;			// if inventory is full & player null check
+	} else {
+		
+	}
+		if (Inventory.isFull() || !(Inventory.contains("Trout")));
+		return State.BANKING;			
 }	
+}
 }
