@@ -45,9 +45,9 @@ public class ZMonks extends AbstractScript {
 	Area MONKS = new Area(2929, 3512, 2941, 3518);
 
 	public enum State {
-		FIGHTING("Fighting"), BANKING("Banking"), WINE("Wine");
+		FIGHTING("Fighting"), BANKING("Banking"), WINE("Wine"), IDLE("Idle");
 
-		private State state;
+		private String state;
 
 		State(String state) {
 			this.state = state;
@@ -58,14 +58,14 @@ public class ZMonks extends AbstractScript {
 		}
 
 		public void onPaint(Graphics2D g) {
-			g.drawString("State: " + state.getState(), 12, 77);
+			g.drawString("State: " + getState(), 12, 77);
 		}
 	}
 
 	@Override
 public int onLoop() {
 	  
-		 state = getState();
+		 State state = getState();
 		  
 		  switch (state) {
 	  
@@ -75,29 +75,35 @@ public int onLoop() {
 		    		Walking.walkOnScreen(BANK.getRandomTile());
 		        	}
 					GameObject depositbox = GameObjects.closest("Bank deposit box");
-					if (depositbox != null && getInventory().isFull()) {
+						if (depositbox != null && Inventory().isFull()) {	
 						depositbox.interact("Deposit");
 						sleepUntil(() -> getDepositBox().isOpen(),
 								randomNum(8000, 10000));
 						sleep(randomNum(300, 500));			
-							getDepositBox().depositAllItems();
+							DepositBox().depositAllItems();
 							sleep(randomNum(300, 500));	
-						getDepositBox().close();
+						DepositBox().close();
 					Walking.walkOnScreen(MONKS.getRandomTile());
 					sleepUntil(() -> Players.localPlayer().isMoving(), randomNum(1000, 2000));
 					
 					break;
-							
+						
 		    case FIGHTING:
 		    	log("Fighting");
 		    	NPCs zmonk = NPCs.closest(q -> q != null && q.getName().equals("Monk of Zamorak") && !q.isInCombat() && q.hasAction("Attack"));
+		    	GroundItems robe = GroundItems().getClosest("Zamorak monk bottom", "Zamorak monk top");
 		    	if (MONKS.getArea().contains(Players.localPlayer())) {
 		    		if (zmonk != null) {
 		    			if (!zmonk.isInteractedWith() && !Players.localPlayer().isInCombat()) {
 		    				zmonk.interact("Attack");
 		    				Mouse.moveMouseOutsideScreen();
-		    				if (Combat.getHealthPercent()<= (Calculations.randomNum(50,75))); {
-		    				 	 getInventory().interact("Trout", "Eat");
+		    				if (Combat.getHealthPercent()<= (Calculations.randomNum(50,75))) {
+		    				 	 Inventory().interact("Trout", "Eat");
+		    				 	sleepUntil(() -> !Players.localPlayer().isAnimating(), 2000);
+		    				 	 if (robe != null && robe.isOnScreen()) {
+		    				 		 robe.interact("Take");
+						             sleepUntil(() -> !Players.localPlayer().isAnimating(), 4000);
+		    				 	 }
 		    				}
 		    			}
 		    		}
@@ -117,6 +123,9 @@ public int onLoop() {
 		    		sleepUntil(() -> (!Players.localPlayer().isAnimating()), randomNum(1000, 2000));
 		    		
 		    	    break;
+		    	    
+		    case IDLE:
+		    	log("Idling");
 		  }
 }	public State getState() {
 	NPCs zmonk = NPCs.closest(q -> q != null && q.getName().equals("Monk of Zamorak") && !q.isInCombat()&& q.hasAction("Attack"));
@@ -124,19 +133,16 @@ public int onLoop() {
 		if (MONKS.getArea().contains(Players.localPlayer()) && (zmonk = null))
 				if(wine != null){{    							
 			return State.WINE;
-				
-		} else {
-			
 
 		if (Players.localPlayer() != null && MONKS.getArea().contains(Players.localPlayer()))
 			if (zmonk != null)
 		return State.FIGHTING;     
-		
-	} else {
-		
-	}
 		if (Inventory.isFull() || !(Inventory.contains("Trout")));
-		return State.BANKING;			
+			return State.BANKING;		
+	} else {
+		return State.IDLE;
+	}
+				
 }	
-}
+
 }
